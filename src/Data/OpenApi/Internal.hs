@@ -50,7 +50,7 @@ import           Text.Read             (readMaybe)
 import           Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
 
-import Data.OpenApi.Aeson.Compat        (deleteKey)
+import Data.OpenApi.Aeson.Compat        (deleteKey, filterWithKey, keyToText, objectToList)
 import Data.OpenApi.Internal.AesonUtils (AesonDefaultValue (..), HasSwaggerAesonOptions (..),
                                          mkSwaggerAesonOptions, saoAdditionalPairs, saoSubObject,
                                          sopSwaggerGenericParseJSON, sopSwaggerGenericToEncoding,
@@ -1566,13 +1566,13 @@ instance FromJSON Responses where
     <$> o .:? "default" 
     <*> parseJSON 
       ( Object 
-        ( HashMap.filterWithKey (\k _ -> not $ isExt k) 
-          $ HashMap.delete "default" o 
+        ( filterWithKey (\k _ -> not $ isExt (keyToText k)) 
+          $ deleteKey "default" o 
         ) 
       ) 
-    <*> case HashMap.filterWithKey (\k _ -> isExt k) o of
+    <*> case filterWithKey (\k _ -> isExt (keyToText k)) o of
         exts
-          | HashMap.null exts -> pure (SpecificationExtensions mempty)
+          | null exts -> pure (SpecificationExtensions mempty)
           | otherwise -> parseJSON (Object exts)
     
   parseJSON _ = empty
@@ -1654,7 +1654,7 @@ instance FromJSON SpecificationExtensions where
   parseJSON = withObject "SpecificationExtensions" extFieldsParser
     where
       extFieldsParser = pure . SpecificationExtensions . InsOrdHashMap.fromList . catMaybes . filterExtFields
-      filterExtFields = fmap (\(k, v) -> (, v) <$> Text.stripPrefix "x-" k) . HashMap.toList
+      filterExtFields = fmap (\(k, v) -> (, v) <$> Text.stripPrefix "x-" (keyToText k)) . objectToList
 
 
 instance FromJSON Info where

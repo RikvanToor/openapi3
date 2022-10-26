@@ -32,6 +32,9 @@ keyToString = Key.toString
 keyToText :: Key -> T.Text
 keyToText = Key.toText
 
+filterWithKey :: (Key -> v -> Bool) -> KeyMap.KeyMap v -> KeyMap.KeyMap v
+filterWithKey f m = KeyMap.filterWithKey f m
+
 toInsOrdHashMap :: KeyMap.KeyMap v -> InsOrdHashMap.InsOrdHashMap T.Text v
 toInsOrdHashMap = InsOrdHashMap.fromList . fmap (first Key.toText) . KeyMap.toList
 
@@ -52,6 +55,9 @@ objectToList = HM.toList
 
 objectKeys :: HM.HashMap T.Text v -> [T.Text]
 objectKeys = HM.keys
+
+filterWithKey :: (T.Text -> v -> Bool) -> HM.HashMap T.Text v -> HM.HashMap T.Text v
+filterWithKey f m = HM.filterWithKey f m
 
 stringToKey :: String -> T.Text
 stringToKey = T.pack
